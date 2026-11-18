@@ -24,6 +24,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
+
       - name: Setup Gradle 8.10.2
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -31,9 +36,6 @@ jobs:
 
       - name: Build Debug & Release APKs
         run: |
-          export ANDROID_HOME=$HOME/android-sdk
-          mkdir -p $ANDROID_HOME
-          yes | sdkmanager --licenses || true
           gradle assembleDebug assembleRelease --stacktrace
 
       - name: Collect Compiled APKs
