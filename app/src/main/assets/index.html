@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>实况取餐助手</title>
+<style>
+  :root {
+    --bg-gradient: radial-gradient(circle at 15% 18%, rgba(196, 228, 255, 0.85) 0%, transparent 45%),
+                   radial-gradient(circle at 88% 28%, rgba(224, 214, 255, 0.82) 0%, transparent 48%),
+                   radial-gradient(circle at 20% 75%, rgba(186, 242, 238, 0.78) 0%, transparent 50%),
+                   linear-gradient(180deg, #DCEBFA 0%, #E5E9F8 48%, #D8F1F0 100%);
+    --text-primary: #0F172A;
+    --text-secondary: #52637A;
+    --text-muted: #64748B;
+    --card-bg: rgba(255, 255, 255, 0.56);
+    --card-mint-bg: linear-gradient(165deg, rgba(214, 247, 244, 0.72) 0%, rgba(235, 245, 255, 0.65) 100%);
+    --card-border: rgba(255, 255, 255, 0.82);
+    --card-shadow: 0 12px 32px -8px rgba(30, 58, 138, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    --item-border: rgba(148, 163, 184, 0.38);
+    --item-bg: rgba(255, 255, 255, 0.48);
+    --btn-bg: rgba(255, 255, 255, 0.78);
+    --btn-border: rgba(148, 163, 184, 0.45);
+    --header-bg: rgba(222, 236, 251, 0.78);
+    --switch-off: rgba(148, 163, 184, 0.45);
+    --switch-on: #1D82F5;
+    --clear-bg: linear-gradient(90deg, rgba(244, 218, 232, 0.65) 0%, rgba(235, 215, 240, 0.65) 100%);
+    --clear-border: rgba(225, 29, 72, 0.25);
+    --clear-text: #E11D48;
+  }
+
+  [data-theme="dark"] {
+    --bg-gradient: radial-gradient(circle at 15% 18%, rgba(29, 78, 216, 0.28) 0%, transparent 45%),
+                   radial-gradient(circle at 88% 28%, rgba(109, 40, 217, 0.25) 0%, transparent 48%),
+                   radial-gradient(circle at 20% 75%, rgba(13, 148, 136, 0.24) 0%, transparent 50%),
+                   linear-gradient(180deg, #0B1120 0%, #111827 50%, #0F172A 100%);
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+    --card-bg: rgba(30, 41, 59, 0.68);
+    --card-mint-bg: linear-gradient(165deg, rgba(19, 48, 61, 0.75) 0%, rgba(30, 41, 59, 0.72) 100%);
+    --card-border: rgba(255, 255, 255, 0.12);
+    --card-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    --item-border: rgba(148, 163, 184, 0.22);
+    --item-bg: rgba(15, 23, 42, 0.48);
+    --btn-bg: rgba(30, 41, 59, 0.85);
+    --btn-border: rgba(148, 163, 184, 0.3);
+    --header-bg: rgba(15, 23, 42, 0.82);
+    --switch-off: rgba(100, 116, 139, 0.5);
+    --switch-on: #3B82F6;
+    --clear-bg: linear-gradient(90deg, rgba(136, 19, 55, 0.35) 0%, rgba(88, 28, 135, 0.35) 100%);
+    --clear-border: rgba(244, 63, 94, 0.35);
+    --clear-text: #FB7185;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "MiSans", "HarmonyOS Sans SC", "Noto Sans CJK SC", sans-serif;
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    overflow-x: hidden;
+  }
+
+  /* Top Sticky Header */
+  .sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 46px 18px 12px 18px;
+    background: var(--header-bg);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .header-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .app-title {
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0;
+    color: var(--text-primary);
+  }
+
+  .theme-switcher {
+    display: inline-flex;
+    align-items: center;
+    background: var(--btn-bg);
+    border: 1px solid var(--btn-border);
+    border-radius: 999px;
+    padding: 3px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+  }
+
+  .theme-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .theme-btn.active {
+    background: linear-gradient(135deg, #56A3FA 0%, #3B82F6 100%);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+  }
+
+  .app-subtitle {
+    margin: 8px 0 2px 0;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.1px;
+  }
+
+  /* Main Container */
+  .container {
+    padding: 12px 16px 48px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Top Preview Capsule Banner */
+  .island-preview-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 16px;
+    border-radius: 26px;
+    background: var(--card-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .island-preview-banner:active {
+    transform: scale(0.985);
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.42);
+    color: #0D9468;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  [data-theme="dark"] .status-pill {
+    color: #34D399;
+    background: rgba(16, 185, 129, 0.2);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10B981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.28);
+  }
+
+  .preview-action-text {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  /* Liquid Glass Card */
+  .glass-card {
+    border-radius: 26px;
+    padding: 20px 18px;
+    background: var(--card-bg);
+    backdrop-filter: blur(26px);
+    -webkit-backdrop-filter: blur(26px);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+  }
+
+  .glass-card.mint-tint {
+    background: var(--card-mint-bg);
+  }
+
+  .card-title {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+  }
+
+  .card-subtitle {
+    margin: 5px 0 18px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  /* Engine Toggle Rows */
+  .engine-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 0;
+  }
+
+  .engine-row + .engine-row {
+    margin-top: 4px;
+  }
+
+  .engine-info {
+    flex: 1;
+  }
+
+  .engine-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 5px 0;
+  }
+
+  .engine-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* iOS / One UI Liquid Switch */
+  .liquid-switch {
+    position: relative;
+    width: 58px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .liquid-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .switch-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: var(--switch-off);
+    border-radius: 999px;
+    transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .switch-slider::before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #FFFFFF;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .liquid-switch input:checked + .switch-slider {
+    background-color: var(--switch-on);
+  }
+
+  .liquid-switch input:checked + .switch-slider::before {
+    transform: translateX(26px);
+  }
+
+  /* Tile Tip Box */
+  .tile-tip-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--item-border);
+    background: var(--item-bg);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-primary);
+  }
+
+  /* Permission Matrix List */
+  .perm-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 0;
+  }
+
+  .perm-left {
+    flex: 1;
+  }
+
+  .perm-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .perm-name {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .perm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(16, 185, 129, 0.14);
+    border: 1px solid rgba(16, 185, 129, 0.42);
+    color: #0D9468;
+  }
+
+  .perm-badge.warn {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #D97706;
+  }
+
+  .perm-badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10B981;
+    box-shadow: 0 0 0 2.5px rgba(16, 185, 129, 0.25);
+  }
+
+  .perm-badge.warn .dot {
+    background: #F59E0B;
+    box-shadow: 0 0 0 2.5px rgba(245, 158, 11, 0.25);
+  }
+
+  .perm-desc {
+    margin: 0;
+    font-size: 12.8px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  .perm-action-btn {
+    min-width: 76px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.12s ease;
+  }
+
+  .perm-action-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* Brand Grid (2 columns) */
+  .brand-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 11px;
+  }
+
+  .brand-card {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 13px;
+    border-radius: 18px;
+    border: 1px solid var(--item-border);
+    background: var(--item-bg);
+    cursor: pointer;
+    transition: transform 0.14s ease, background 0.14s ease;
+  }
+
+  .brand-card:active {
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .brand-logo-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .brand-logo-wrap svg,
+  .brand-logo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .brand-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .brand-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-code {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* Custom Input Row */
+  .custom-input-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 14px;
+  }
+
+  .glass-input {
+    height: 46px;
+    padding: 0 13px;
+    border-radius: 15px;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--text-primary);
+    font-size: 13.5px;
+    font-weight: 500;
+    outline: none;
+    user-select: text;
+  }
+
+  .glass-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .glass-input.merchant-input {
+    flex: 1.25;
+    min-width: 0;
+  }
+
+  .glass-input.code-input {
+    flex: 0.95;
+    min-width: 0;
+  }
+
+  .island-submit-btn {
+    height: 46px;
+    padding: 0 20px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #1677FF 0%, #0958D9 100%);
+    color: #FFFFFF;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(22, 119, 255, 0.3);
+  }
+
+  .island-submit-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* Clear All Button */
+  .clear-all-btn {
+    width: 100%;
+    margin-top: 13px;
+    height: 48px;
+    border-radius: 16px;
+    border: 1px solid var(--clear-border);
+    background: var(--clear-bg);
+    color: var(--clear-text);
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.14s ease;
+  }
+
+  .clear-all-btn:active {
+    transform: scale(0.985);
+  }
+
+  /* Brand Logo Workshop Card */
+  .workshop-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .workshop-enter-btn {
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .avatar-stack-row {
+    display: flex;
+    align-items: center;
+    margin-top: 14px;
+  }
+
+  .avatar-stack {
+    display: flex;
+    align-items: center;
+  }
+
+  .stack-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid #FFFFFF;
+    overflow: hidden;
+    margin-left: -8px;
+    background: #FFFFFF;
+    flex-shrink: 0;
+  }
+
+  .stack-icon:first-child {
+    margin-left: 0;
+  }
+
+  .stack-more-text {
+    margin-left: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  /* Setup Guide List */
+  .guide-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .guide-item {
+    font-size: 13.3px;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+
+  /* Workshop Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-backdrop.open {
+    display: flex;
+  }
+
+  .modal-sheet {
+    width: 100%;
+    max-height: 84vh;
+    background: var(--card-bg);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-top: 1px solid var(--card-border);
+    border-radius: 28px 28px 0 0;
+    padding: 20px 18px 32px 18px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .modal-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .modal-close {
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--text-primary);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .workshop-grid {
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding-bottom: 20px;
+  }
+
+  .workshop-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border-radius: 16px;
+    border: 1px solid var(--item-border);
+    background: var(--item-bg);
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .workshop-item .brand-logo-wrap {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 6px;
+  }
+
+  .workshop-item-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .workshop-item-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body data-theme="light">
+
+  <!-- Sticky Top Bar -->
+  <header class="sticky-header">
+    <div class="header-top-row">
+      <h1 class="app-title">实况取餐助手</h1>
+      <div class="theme-switcher">
+        <button class="theme-btn" data-mode="auto" onclick="setThemeMode('auto')">自动</button>
+        <button class="theme-btn active" data-mode="light" onclick="setThemeMode('light')">浅色</button>
+        <button class="theme-btn" data-mode="dark" onclick="setThemeMode('dark')">深色</button>
+      </div>
+    </div>
+    <p class="app-subtitle">跨节点语义锚点 + 视觉大字号 OCR + 多订单并行上岛</p>
+  </header>
+
+  <main class="container">
+    <!-- Top Capsule Preview Banner -->
+    <div class="island-preview-banner" onclick="triggerIsland('测试商户', 'A088')">
+      <span class="status-pill">
+        <span class="status-dot"></span>
+        <span>待命监听中</span>
+      </span>
+      <span class="preview-action-text">灵动实况岛 · 轻点测试上岛预览</span>
+    </div>
+
+    <!-- Card 1: 多模态智能识码引擎 -->
+    <section class="glass-card">
+      <h2 class="card-title">多模态智能识码引擎</h2>
+      <p class="card-subtitle">三大识别通道协同工作，覆盖全品牌小程序与多单并行</p>
+
+      <div class="engine-row">
+        <div class="engine-info">
+          <h3 class="engine-name">无障碍自动识别 + 小程序按需 OCR</h3>
+          <p class="engine-desc">自动关联跨节点标签与号码；OCR 在独立按需进程运行，闲时自动卸载免占内存。</p>
+        </div>
+        <label class="liquid-switch">
+          <input type="checkbox" id="toggle-a11y-ocr" checked onchange="onEngineToggle('accessibility_ocr', this.checked)" />
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+
+      <div class="engine-row">
+        <div class="engine-info">
+          <h3 class="engine-name">微信服务通知 / 推送直通上岛</h3>
+          <p class="engine-desc">无需停留在点餐页，收到微信「服务通知」或美团/淘宝闪购出餐推送时立即提码上岛。</p>
+        </div>
+        <label class="liquid-switch">
+          <input type="checkbox" id="toggle-wechat-push" checked onchange="onEngineToggle('wechat_push', this.checked)" />
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+
+      <div class="tile-tip-box">
+        ⚡ 任意取餐页兜底：下拉控制中心 → 轻点「取餐码扫描」磁贴，一键执行高字号视觉扫描。
+      </div>
+    </section>
+
+    <!-- Card 2: 核心权限矩阵 -->
+    <section class="glass-card mint-tint">
+      <h2 class="card-title">核心权限矩阵</h2>
+      <p class="card-subtitle">保障识码准确率与系统原生实况窗正常运行</p>
+
+      <div class="perm-item">
+        <div class="perm-left">
+          <div class="perm-title-row">
+            <span class="perm-name">无障碍智能识屏服务</span>
+            <span class="perm-badge" id="badge-accessibility">
+              <span class="dot"></span>
+              <span class="badge-text">运行中</span>
+            </span>
+          </div>
+          <p class="perm-desc">读取节点树与屏幕截图，支持跨节点取餐码提取</p>
+        </div>
+        <button class="perm-action-btn" onclick="openPerm('accessibility')">管理</button>
+      </div>
+
+      <div class="perm-item">
+        <div class="perm-left">
+          <div class="perm-title-row">
+            <span class="perm-name">后台电池无限制 (防掉线)</span>
+            <span class="perm-badge" id="badge-battery">
+              <span class="dot"></span>
+              <span class="badge-text">不受限制</span>
+            </span>
+          </div>
+          <p class="perm-desc">防止三星系统休眠或强停导致无障碍显示"不工作"</p>
+        </div>
+        <button class="perm-action-btn" id="btn-battery" onclick="openPerm('battery')">已配置</button>
+      </div>
+
+      <div class="perm-item">
+        <div class="perm-left">
+          <div class="perm-title-row">
+            <span class="perm-name">通知使用权 (微信服务通知)</span>
+            <span class="perm-badge" id="badge-notif-listener">
+              <span class="dot"></span>
+              <span class="badge-text">已连接</span>
+            </span>
+          </div>
+          <p class="perm-desc">后台实时捕获微信服务通知与品牌出餐推送</p>
+        </div>
+        <button class="perm-action-btn" onclick="openPerm('notificationListener')">管理</button>
+      </div>
+
+      <div class="perm-item">
+        <div class="perm-left">
+          <div class="perm-title-row">
+            <span class="perm-name">通知发布权限</span>
+            <span class="perm-badge" id="badge-post-notif">
+              <span class="dot"></span>
+              <span class="badge-text">已授权</span>
+            </span>
+          </div>
+          <p class="perm-desc">实况窗及胶囊通知投递所依赖的基础系统权限</p>
+        </div>
+        <button class="perm-action-btn" onclick="openPerm('postNotification')">设置</button>
+      </div>
+
+      <div class="perm-item">
+        <div class="perm-left">
+          <div class="perm-title-row">
+            <span class="perm-name">原生实况窗 / 实时通知</span>
+            <span class="perm-badge" id="badge-live-window">
+              <span class="dot"></span>
+              <span class="badge-text">已启用</span>
+            </span>
+          </div>
+          <p class="perm-desc">Android 16 / One UI 实时胶囊提升许可（覆盖重装后会重置）</p>
+        </div>
+        <button class="perm-action-btn" onclick="openPerm('liveWindow')">查看</button>
+      </div>
+    </section>
+
+    <!-- Card 3: 全品牌多岛仿真实验室 -->
+    <section class="glass-card">
+      <h2 class="card-title">全品牌多岛仿真实验室</h2>
+      <p class="card-subtitle">连续点击不同品牌可叠加多张实况窗同时上岛（最多 6 单）</p>
+
+      <div class="brand-grid" id="preset-brand-grid"></div>
+
+      <div class="custom-input-row">
+        <input type="text" id="custom-merchant" class="glass-input merchant-input" placeholder="商家(如 茉莉奶白)" />
+        <input type="text" id="custom-code" class="glass-input code-input" placeholder="码(如 068)" />
+        <button class="island-submit-btn" onclick="submitCustomIsland()">上岛</button>
+      </div>
+
+      <button class="clear-all-btn" onclick="clearAllIslands()">清除全部取餐状态 (全部下岛)</button>
+    </section>
+
+    <!-- Card 4: 品牌 Logo 视觉工坊 -->
+    <section class="glass-card mint-tint">
+      <div class="workshop-top">
+        <div>
+          <h2 class="card-title">品牌 Logo 视觉工坊</h2>
+          <p class="card-subtitle" style="margin-bottom:0;">已收录 33 个官方品牌高清图标，支持自定义上传替换</p>
+        </div>
+        <button class="workshop-enter-btn" onclick="openWorkshopModal()">进入工坊 →</button>
+      </div>
+
+      <div class="avatar-stack-row">
+        <div class="avatar-stack" id="workshop-avatar-stack"></div>
+        <span class="stack-more-text">+27 更多品牌</span>
+      </div>
+    </section>
+
+    <!-- Card 5: 系统原生“实况窗”配置指南 -->
+    <section class="glass-card mint-tint">
+      <h2 class="card-title">系统原生“实况窗”配置指南</h2>
+      <p class="card-subtitle">首次部署或重装后建议检查以下三项</p>
+
+      <ol class="guide-list">
+        <li class="guide-item">1. 授予【通知权限】与【原生实况窗 / 实时通知】，确保胶囊能在状态栏与 Now Bar 展示。</li>
+        <li class="guide-item">2. 开启【无障碍识屏】与【通知使用权】，自动覆盖小程序界面与微信服务通知双路径。</li>
+        <li class="guide-item">3. 三星 One UI 8+ 请在「设置 → 通知 → 实时通知」允许本应用，或在【开发者选项】打开「所有应用的实时通知」。</li>
+      </ol>
+    </section>
+  </main>
+
+  <!-- 33-Brand Logo Workshop Modal -->
+  <div class="modal-backdrop" id="workshop-modal" onclick="if(event.target===this) closeWorkshopModal()">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">品牌 Logo 视觉工坊 (33 品牌)</h3>
+        <button class="modal-close" onclick="closeWorkshopModal()">完成</button>
+      </div>
+      <p class="card-subtitle" style="margin-top:0;">轻点任意品牌即可从相册选择高清图标替换，长按恢复默认官方图标</p>
+      <div class="workshop-grid" id="workshop-full-grid"></div>
+      <input type="file" id="logo-file-input" accept="image/*" style="display:none;" onchange="handleLogoFileSelected(event)" />
+    </div>
+  </div>
+
+<script>
+  // Exact SVG Logos matching 1000041149.jpg
+  const BRAND_SVGS = {
+    luckin: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#19398A"/><path d="M22 48c1-9 5-14 13-16-3-3-4-7-2-11 3 3 6 5 11 4-2-4-1-8 3-11-1 5 1 8 5 10-4 2-6 5-7 9 3 0 6 2 8 5-5 0-8 2-11 6-2 3-4 6-4 10H22z" fill="#FFF"/><path d="M28 18c-3-4-8-6-13-5 3 3 4 7 3 11 4-2 7-2 10-1z" fill="#FFF"/></svg>`,
+    chagee: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#D9232E"/><circle cx="32" cy="32" r="26" fill="none" stroke="#FFF" stroke-width="2" stroke-dasharray="3 2"/><circle cx="32" cy="24" r="9" fill="#FFF"/><path d="M20 46c2-8 7-12 12-12s10 4 12 12H20z" fill="#FFF"/><circle cx="24" cy="20" r="3.5" fill="#D9232E"/><circle cx="40" cy="20" r="3.5" fill="#D9232E"/><circle cx="32" cy="16" r="3" fill="#D9232E"/></svg>`,
+    heytea: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#FFF" stroke="#222" stroke-width="2.5"/><path d="M24 24c0-5 4-9 9-9s9 4 9 9v6H24v-6z" fill="#222"/><circle cx="31" cy="31" r="7" fill="none" stroke="#222" stroke-width="2.5"/><path d="M36 33l10-6 3 5-10 6z" fill="#222"/><path d="M23 48c2-6 6-9 11-9s8 3 10 9" fill="none" stroke="#222" stroke-width="2.5"/></svg>`,
+    mcdonalds: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#DB0007"/><path d="M16 46V28c0-6 3.5-11 8-11 3.8 0 6.8 3.8 8 9.5 1.2-5.7 4.2-9.5 8-9.5 4.5 0 8 5 8 11v18h-5.5V29c0-3.8-1.5-6.5-3.5-6.5-2.2 0-4 3.2-4 7.5v14h-6V30c0-4.3-1.8-7.5-4-7.5-2 0-3.5 2.7-3.5 6.5v17H16z" fill="#FFBC0D"/></svg>`,
+    meituan: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#FFE14D" stroke="#FFF" stroke-width="2"/><path d="M22 14c-3 0-5 5-4 13l-2 4c-2 6 2 16 14 16s16-10 14-16l-2-4c1-8-1-13-4-13-3 0-5 4-5 10h-2c0-6-2-10-5-10z" fill="#FFB300"/><circle cx="36" cy="35" r="2.8" fill="#222"/><circle cx="44" cy="35" r="2.8" fill="#222"/><ellipse cx="40" cy="39" rx="2.5" ry="1.8" fill="#222"/></svg>`,
+    taobao_flash: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#FF5A00"/><text x="32" y="29" text-anchor="middle" fill="#FFF" font-size="14" font-weight="800">淘宝</text><text x="32" y="46" text-anchor="middle" fill="#FFF" font-size="13" font-weight="700">闪购</text></svg>`,
+    guming: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#FFF" stroke="#222" stroke-width="2.5"/><path d="M32 16c4 0 7 3 7 6 0 2-1.5 4-3.5 5 3.5 1.5 6 5 6 9.5 0 5.5-4.2 9.5-9.5 9.5s-9.5-4-9.5-9.5c0-4.5 2.5-8 6-9.5-2-1-3.5-3-3.5-5 0-3 3-6 7-6z" fill="#1E1E1E"/><circle cx="34" cy="22" r="2" fill="#FFF"/></svg>`,
+    starbucks: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="31" fill="#00704A"/><path d="M32 12l3 6 5-3-1 7 5-1-3 5h-18l-3-5 5 1-1-7 5 3 3-6z" fill="#FFF"/><circle cx="32" cy="34" r="7" fill="#FFF"/><path d="M18 48c3-7 8-10 14-10s11 3 14 10" fill="none" stroke="#FFF" stroke-width="3.2" stroke-linecap="round"/><path d="M14 38c2 7 8 14 18 14s16-7 18-14" fill="none" stroke="#FFF" stroke-width="2.5"/></svg>`
+  };
+
+  const PRESET_BRANDS = [
+    { id: "luckin", name: "瑞幸咖啡", code: "A9821", color: "#19398A", badge: "瑞" },
+    { id: "chagee", name: "霸王茶姬", code: "T089", color: "#D9232E", badge: "茶" },
+    { id: "heytea", name: "喜茶", code: "8204", color: "#222222", badge: "喜" },
+    { id: "mcdonalds", name: "麦当劳", code: "312", color: "#DB0007", badge: "M" },
+    { id: "meituan", name: "美团外卖", code: "7892", color: "#FFB300", badge: "美" },
+    { id: "taobao_flash", name: "淘宝闪购", code: "E-512", color: "#FF5A00", badge: "淘" },
+    { id: "guming", name: "古茗", code: "058", color: "#222222", badge: "古" },
+    { id: "starbucks", name: "星巴克", code: "B026", color: "#00704A", badge: "星" }
+  ];
+
+  const EXTRA_BRANDS = [
+    { id: "molinaibai", name: "茉莉奶白", code: "068", color: "#5B8C5A", badge: "茉" },
+    { id: "mixue", name: "蜜雪冰城", code: "108", color: "#E60012", badge: "蜜" },
+    { id: "chabaidao", name: "茶百道", code: "C215", color: "#0052D9", badge: "茶" },
+    { id: "cotti", name: "库迪咖啡", code: "K082", color: "#9B1B30", badge: "库" },
+    { id: "kfc", name: "肯德基", code: "K109", color: "#E4002B", badge: "KFC" },
+    { id: "nayuki", name: "奈雪的茶", code: "N066", color: "#78B833", badge: "奈" },
+    { id: "aysh", name: "沪上阿姨", code: "H301", color: "#F36C21", badge: "沪" },
+    { id: "burgerking", name: "汉堡王", code: "B812", color: "#D62300", badge: "汉" },
+    { id: "manner", name: "Manner咖啡", code: "M204", color: "#C8102E", badge: "M" },
+    { id: "yidiandian", name: "1点点", code: "A116", color: "#006837", badge: "1点" },
+    { id: "coco", name: "CoCo都可", code: "D092", color: "#FF6600", badge: "Co" },
+    { id: "shuyi", name: "书亦烧仙草", code: "S045", color: "#C41230", badge: "书" },
+    { id: "sexytea", name: "茶颜悦色", code: "Y520", color: "#8B261D", badge: "颜" },
+    { id: "tims", name: "Tims天好咖啡", code: "T401", color: "#C8102E", badge: "T" },
+    { id: "mstand", name: "M Stand", code: "MS18", color: "#111111", badge: "MS" },
+    { id: "lavazza", name: "Lavazza", code: "L033", color: "#0A2240", badge: "L" },
+    { id: "linlee", name: "LINLEE林里", code: "L088", color: "#0047BA", badge: "林" },
+    { id: "yihetang", name: "益禾堂", code: "Y077", color: "#009944", badge: "益" },
+    { id: "tianlala", name: "甜啦啦", code: "T168", color: "#F5A623", badge: "甜" },
+    { id: "7fen", name: "7分甜", code: "7021", color: "#F59E0B", badge: "7" },
+    { id: "lelecha", name: "乐乐茶", code: "L602", color: "#E60012", badge: "乐" },
+    { id: "wallace", name: "华莱士", code: "W118", color: "#D9232E", badge: "华" },
+    { id: "tastien", name: "塔斯汀", code: "TS09", color: "#E60012", badge: "塔" },
+    { id: "saizeriya", name: "萨莉亚", code: "SZ12", color: "#007A33", badge: "萨" },
+    { id: "yeyebupaocha", name: "爷爷不泡茶", code: "YY06", color: "#2D5A27", badge: "茶" }
+  ];
+
+  const ALL_33_BRANDS = [...PRESET_BRANDS, ...EXTRA_BRANDS];
+  let customLogosMap = {};
+  let editingBrandId = null;
+
+  function getBrandLogoHtml(brand) {
+    if (customLogosMap[brand.id]) {
+      return `<img src="${customLogosMap[brand.id]}" alt="${brand.name}" />`;
+    }
+    if (BRAND_SVGS[brand.id]) {
+      return BRAND_SVGS[brand.id];
+    }
+    return `<svg viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="31" fill="${brand.color}"/>
+      <circle cx="32" cy="32" r="22" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2"/>
+      <text x="32" y="38" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="800">${brand.badge}</text>
+    </svg>`;
+  }
+
+  function renderUI() {
+    // 1. Render 8 preset brand cards
+    const grid = document.getElementById("preset-brand-grid");
+    grid.innerHTML = PRESET_BRANDS.map(b => `
+      <div class="brand-card" onclick="triggerIsland('${b.name}', '${b.code}')">
+        <div class="brand-logo-wrap">${getBrandLogoHtml(b)}</div>
+        <div class="brand-meta">
+          <span class="brand-title">${b.name}</span>
+          <span class="brand-code">码: ${b.code}</span>
+        </div>
+      </div>
+    `).join("");
+
+    // 2. Render 6 overlapping stack icons
+    const stackIds = ["luckin", "chagee", "heytea", "mcdonalds", "meituan", "starbucks"];
+    const stackEl = document.getElementById("workshop-avatar-stack");
+    stackEl.innerHTML = stackIds.map(id => {
+      const b = PRESET_BRANDS.find(x => x.id === id);
+      return `<div class="stack-icon">${getBrandLogoHtml(b)}</div>`;
+    }).join("");
+
+    // 3. Render 33-brand workshop modal grid
+    const workshopGrid = document.getElementById("workshop-full-grid");
+    workshopGrid.innerHTML = ALL_33_BRANDS.map(b => `
+      <div class="workshop-item" onclick="selectBrandForUpload('${b.id}')" oncontextmenu="resetBrandLogo('${b.id}'); return false;">
+        <div class="brand-logo-wrap">${getBrandLogoHtml(b)}</div>
+        <span class="workshop-item-name">${b.name}</span>
+        <span class="workshop-item-sub">${customLogosMap[b.id] ? '已自定义' : '官方高清'}</span>
+      </div>
+    `).join("");
+  }
+
+  function setThemeMode(mode) {
+    document.querySelectorAll(".theme-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.mode === mode);
+    });
+    let resolved = mode;
+    if (mode === "auto") {
+      resolved = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    document.body.setAttribute("data-theme", resolved);
+    if (window.AndroidBridge && window.AndroidBridge.setStatusBarLightMode) {
+      window.AndroidBridge.setStatusBarLightMode(resolved === "light");
+    }
+  }
+
+  function triggerIsland(brand, code) {
+    if (window.AndroidBridge && window.AndroidBridge.triggerIslandOrder) {
+      window.AndroidBridge.triggerIslandOrder(brand, code);
+    }
+  }
+
+  function submitCustomIsland() {
+    const merchantInput = document.getElementById("custom-merchant");
+    const codeInput = document.getElementById("custom-code");
+    const brand = (merchantInput.value || "").trim() || "茉莉奶白";
+    const code = (codeInput.value || "").trim() || "068";
+    triggerIsland(brand, code);
+  }
+
+  function clearAllIslands() {
+    if (window.AndroidBridge && window.AndroidBridge.clearAllIslands) {
+      window.AndroidBridge.clearAllIslands();
+    }
+  }
+
+  function onEngineToggle(key, enabled) {
+    if (window.AndroidBridge && window.AndroidBridge.toggleEngineChannel) {
+      window.AndroidBridge.toggleEngineChannel(key, enabled);
+    }
+  }
+
+  function openPerm(type) {
+    if (window.AndroidBridge && window.AndroidBridge.openPermissionSetting) {
+      window.AndroidBridge.openPermissionSetting(type);
+    }
+  }
+
+  function updateBadge(badgeId, isOk, okText, warnText) {
+    const el = document.getElementById(badgeId);
+    if (!el) return;
+    el.classList.toggle("warn", !isOk);
+    el.querySelector(".badge-text").textContent = isOk ? okText : warnText;
+  }
+
+  window.__onNativeStateUpdated = function(status, customLogos, activeOrders) {
+    if (status) {
+      updateBadge("badge-accessibility", status.accessibility, "运行中", "未开启");
+      updateBadge("badge-battery", status.battery, "不受限制", "受限制");
+      document.getElementById("btn-battery").textContent = status.battery ? "已配置" : "配置";
+      updateBadge("badge-notif-listener", status.notificationListener, "已连接", "未连接");
+      updateBadge("badge-post-notif", status.postNotification, "已授权", "未授权");
+      updateBadge("badge-live-window", status.liveWindow, "已启用", "待启用");
+
+      document.getElementById("toggle-a11y-ocr").checked = !!status.engineAccessibilityOcr;
+      document.getElementById("toggle-wechat-push").checked = !!status.engineWechatPush;
+    }
+    if (customLogos) {
+      customLogosMap = customLogos;
+      renderUI();
+    }
+  };
+
+  function openWorkshopModal() {
+    document.getElementById("workshop-modal").classList.add("open");
+  }
+
+  function closeWorkshopModal() {
+    document.getElementById("workshop-modal").classList.remove("open");
+  }
+
+  function selectBrandForUpload(brandId) {
+    editingBrandId = brandId;
+    document.getElementById("logo-file-input").click();
+  }
+
+  function resetBrandLogo(brandId) {
+    delete customLogosMap[brandId];
+    renderUI();
+    if (window.AndroidBridge && window.AndroidBridge.resetCustomBrandLogo) {
+      window.AndroidBridge.resetCustomBrandLogo(brandId);
+    }
+  }
+
+  function handleLogoFileSelected(event) {
+    const file = event.target.files[0];
+    if (!file || !editingBrandId) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 160;
+        canvas.height = 160;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, 160, 160);
+        const dataUrl = canvas.toDataURL("image/png");
+        customLogosMap[editingBrandId] = dataUrl;
+        renderUI();
+        if (window.AndroidBridge && window.AndroidBridge.saveCustomBrandLogo) {
+          window.AndroidBridge.saveCustomBrandLogo(editingBrandId, dataUrl);
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    event.target.value = "";
+  }
+
+  renderUI();
+</script>
+</body>
+</html>

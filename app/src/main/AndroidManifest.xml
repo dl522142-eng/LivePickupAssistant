@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- 基础通知与Android 16 实况胶囊提升权限 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher_pickup"
+        android:roundIcon="@drawable/ic_launcher_pickup"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:hardwareAccelerated="true"
+        android:theme="@style/Theme.LivePickupAssistant"
+        tools:targetApi="35">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 无障碍智能识屏服务（跨节点语义锚点 + 屏幕截图触发） -->
+        <service
+            android:name=".service.PickupAccessibilityService"
+            android:label="@string/accessibility_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <!-- 微信服务通知 / 品牌出餐推送监听服务 -->
+        <service
+            android:name=".service.PickupNotificationListenerService"
+            android:label="@string/notification_listener_label"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- 控制中心「取餐码扫描」快捷磁贴服务 -->
+        <service
+            android:name=".service.PickupScanTileService"
+            android:label="@string/tile_scan_label"
+            android:icon="@drawable/ic_stat_pickup_bag"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- 独立按需 OCR 进程服务（闲时自动卸载免占内存） -->
+        <service
+            android:name=".service.OcrOnDemandService"
+            android:process=":ocr"
+            android:exported="false" />
+
+        <!-- 实况窗「确认取餐」按钮广播接收器 -->
+        <receiver
+            android:name=".receiver.ConfirmPickupReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.livepickup.assistant.ACTION_CONFIRM_PICKUP" />
+                <action android:name="com.livepickup.assistant.ACTION_CLEAR_ALL_PICKUP" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

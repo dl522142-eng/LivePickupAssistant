@@ -1,0 +1,62 @@
+name: Android CI - Build APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle 8.10.2
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Build Debug & Release APKs
+        run: |
+          gradle assembleDebug assembleRelease --stacktrace
+
+      - name: Collect Compiled APKs
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/实况取餐助手_v1.0.0_debug.apk
+          cp app/build/outputs/apk/release/app-release.apk dist/实况取餐助手_v1.0.0_release.apk
+
+      - name: Upload APK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: 实况取餐助手-APK安装包
+          path: dist/*.apk
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: "实况取餐助手 v1.0.${{ github.run_number }}"
+          body: |
+            ### 实况取餐助手 (LivePickupAssistant) 自动构建版本
+            - **核心特性**：跨节点语义锚点 + 视觉大字号按需独立进程 OCR + 微信服务通知直通 + 多订单并行上岛（最多 6 单）
+            - **适配系统**：Android 15 / 16 及 Samsung One UI 8.0 / 9.0 原生实况窗 (Live Notifications & Now Bar)
+          files: dist/*.apk

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">实况取餐助手</string>
+    <string name="accessibility_service_label">实况取餐助手 · 无障碍智能识屏</string>
+    <string name="accessibility_service_desc">自动关联跨节点标签与取餐号码，支持小程序与取餐页按需视觉大字号 OCR 提取并投递至系统实况岛。</string>
+    <string name="notification_listener_label">实况取餐助手 · 微信服务通知直通</string>
+    <string name="tile_scan_label">取餐码扫描</string>
+</resources>
