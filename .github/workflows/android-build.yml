@@ -24,6 +24,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
+
       - name: Setup Gradle 8.10.2
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -31,16 +36,12 @@ jobs:
 
       - name: Build Debug & Release APKs
         run: |
-          # 纯净编译：完全交给 Gradle 自动下载所需 Android 编译环境
-          export ANDROID_HOME=$HOME/android-sdk
-          mkdir -p $ANDROID_HOME
-          gradle assembleDebug assembleRelease --stacktrace
+          ./gradlew assembleDebug assembleRelease --stacktrace
 
       - name: Collect Compiled APKs
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/实况取餐助手_v1.0.0_debug.apk
-          cp app/build/outputs/apk/release/app-release.apk dist/实况取餐助手_v1.0.0_release.apk
+          find app/build/outputs/apk -name "*.apk" -exec cp {} dist/ \;
 
       - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
