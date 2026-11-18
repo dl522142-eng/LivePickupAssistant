@@ -24,14 +24,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          build-tools-version: 35.0.0
-          android-version: platforms;android-35
-          cmake-version: 3.22.1
-          accept-android-sdk-licenses: true
-
       - name: Setup Gradle 8.10.2
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -39,6 +31,9 @@ jobs:
 
       - name: Build Debug & Release APKs
         run: |
+          # 纯净编译：完全交给 Gradle 自动下载所需 Android 编译环境
+          export ANDROID_HOME=$HOME/android-sdk
+          mkdir -p $ANDROID_HOME
           gradle assembleDebug assembleRelease --stacktrace
 
       - name: Collect Compiled APKs
